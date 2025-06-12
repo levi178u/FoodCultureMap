@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200"
+     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style>
+    .pulse {
+      animation: pulse 2s infinite ease-in-out;
+    }
+    .bounce {
+      animation: bounce 1.2s infinite;
+    }
+    .slideIn {
+      animation: slideIn 1s ease forwards;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes slideIn {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+
+  <!-- Map Pin -->
+  <path class="bounce" d="M100 10C65 10 40 35 40 70c0 35 60 120 60 120s60-85 60-120c0-35-25-60-60-60z"
+        fill="#FF7043"/>
+
+  <!-- Fork -->
+  <g class="slideIn" style="animation-delay: 0.5s">
+    <rect x="88" y="55" width="3" height="18" fill="#4CAF50"/>
+    <rect x="91" y="55" width="3" height="18" fill="#4CAF50"/>
+    <rect x="94" y="55" width="3" height="18" fill="#4CAF50"/>
+    <rect x="97" y="55" width="3" height="32" fill="#4CAF50"/>
+  </g>
+
+  <!-- Spoon -->
+  <g class="slideIn" style="animation-delay: 0.8s">
+    <ellipse cx="110" cy="60" rx="5" ry="10" fill="#795548"/>
+    <rect x="108" y="70" width="4" height="25" fill="#795548"/>
+  </g>
+
+  <!-- Globe Pulse -->
+  <circle class="pulse" cx="100" cy="70" r="30" stroke="#8D6E63" stroke-width="2" fill="none"/>
+
+  <!-- Globe Lines -->
+  <path d="M70 70h60M100 40v60M82 47a40 40 0 0 1 36 0"
+        stroke="#8D6E63" stroke-width="1.5" fill="none"/>
+
+  <!-- Optional App Name (optional if used inline) -->
+  <text x="50%" y="190" text-anchor="middle" font-size="14"
+        font-family="Arial, sans-serif" fill="#333">
+    FoodMap Culture
+  </text>
+</svg>
