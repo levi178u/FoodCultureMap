@@ -6,19 +6,19 @@ from datetime import datetime
 import asyncio
 import json
 from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings as APS
+from hashlib import sha256
 
 load_dotenv()
 
+def hash_query(query: str) -> str:
+    return sha256(query.encode()).hexdigest()
 class Database:
     def __init__(self):
         self.client = None
         self.db = None
         self.dishes_collection = None
         self.sessions_collection = None
-        self.model = APS(
-            api_key=os.getenv("HUGGING_FACE_API_KEY"),
-            model="sentence-transformers/all-MiniLM-L6-v2"
-        )
+        self.response_cache = None
 
     async def connect(self):
         self.client = client_io(os.getenv("MONGO_URI"))
@@ -29,12 +29,15 @@ class Database:
             api_key=os.getenv("HUGGING_FACE_API_KEY"),
             model="sentence-transformers/all-MiniLM-L6-v2"
         )
+        self.response_cache = self.db.response_cache
 
     async def close(self):
         if self.client:
             self.client.close()
 
     async def create_vector_index(self):
+        if self.db is None or self.dishes_collection is None:
+            await self.connect()
         # Created vector search index
         try:
             await self.db.command({
@@ -87,12 +90,14 @@ class Database:
             {"session_id": session_id},
             {
                 "$push": {"messages": message},
-                "$set": {"updated_at": datetime.utcnow()}
+                "$set": {"updated_at": datetime.utcnow().isoformat()}
             },
             upsert=True
         )
 
     async def seed_dishes(self, json_file: str):
+        if self.dishes_collection is None:
+            await self.connect()
         with open(json_file, 'r', encoding='utf-8') as file:
             dishes_data = json.load(file)
 
@@ -101,8 +106,8 @@ class Database:
             for item in dishes_data:
                 dish = f"{item['dish']} {item['description']} {' '.join(item['ingredients'])}"
                 item['id'] = str(item.get('id', item['dish'].replace(" ", "_").lower()))
-                item['created_at'] = datetime.utcnow()
-                item['updated_at'] = datetime.utcnow()
+                item['created_at'] = datetime.utcnow().isoformat()
+                item['updated_at'] = datetime.utcnow().isoformat()
                 
                 embedding = await self.model.embed_query(dish)
                 item['embedding'] = embedding
@@ -111,4 +116,17 @@ class Database:
             await self.dishes_collection.insert_many(dishes_with_embeddings)
             print(f"Inserted {len(dishes_with_embeddings)} dishes out of {total}")
 
-db = Database() 
+    async def get_cache(self, query: str, session_id: str = None) -> [Dict[str, Any]]:
+        cache_key = hash_query(f"{query}_{session_id}")
+        cached_response = await self.response_cache.find_one({"_id": cache_key})
+        return cached_response["response"] if cached_response else None
+
+    async def set_cache(self, query: str, session_id: str, response: Dict[str, Any]):
+        cache_key = hash_query(f"{query}_{session_id}")
+        await self.response_cache.update_one(
+            {"_id": cache_key},
+            {"$set": {"response": response, "timestamp": datetime.utcnow().isoformat()}},
+            upsert=True
+        )
+
+db = Database()
