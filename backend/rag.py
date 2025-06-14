@@ -5,11 +5,9 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 import json
-from functools import lru_cache
 from .database import db
 from .database import Database
-from hashlib import sha256
-from aiocache import Cache
+# from aiocache import Cache
 
 load_dotenv()
 
@@ -18,7 +16,7 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 gemini = genai.GenerativeModel('gemini-pro')
 
 CACHE_TTL = 3600
-cache = Cache(Cache.MEMORY)
+# cache = Cache(Cache.MEMORY)
 
 def create_embedding(text: str) -> List[float]:
     return model.encode(text).tolist()
@@ -77,8 +75,8 @@ async def generate_response(query: str, context: List[Dict[str, Any]], conversat
 async def chat_with_food_expert(query: str, session_id: str = None) -> Dict[str, Any]:
     try:
         # cache
-        cache_key = sha256(f"{query}_{session_id}".encode()).hexdigest()
-        cached = await cache.get(cache_key)
+        # cache_key = sha256(f"{query}_{session_id}".encode()).hexdigest()
+        cached = await db.get_cache(query, session_id)
         if cached:
             return json.loads(cached)
 
@@ -128,7 +126,7 @@ async def chat_with_food_expert(query: str, session_id: str = None) -> Dict[str,
                 "timestamp": datetime.utcnow()
             })
 
-        await cache.set(cache_key, json.dumps(response), ttl=CACHE_TTL)
+        await db.set_cache(query, session_id, response)
         return response
 
     except Exception as e:
