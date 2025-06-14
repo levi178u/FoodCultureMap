@@ -99,7 +99,12 @@ class Database:
             total = len(dishes_data)
             dishes_with_embeddings = []
             for item in dishes_data:
-                embedding = await self.model.embed_query(item['dish'])
+                dish = f"{item['dish']} {item['description']} {' '.join(item['ingredients'])}"
+                item['id'] = str(item.get('id', item['dish'].replace(" ", "_").lower()))
+                item['created_at'] = datetime.utcnow()
+                item['updated_at'] = datetime.utcnow()
+                
+                embedding = await self.model.embed_query(dish)
                 item['embedding'] = embedding
                 dishes_with_embeddings.append(item)
         if dishes_with_embeddings:
