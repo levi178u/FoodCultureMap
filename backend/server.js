@@ -3,7 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import Vectorroutes from './routes/vectorRoutes.js';
-import Ragroutes from './routes/ragRoutes.js'
+import Ragroutes from './routes/ragRoutes.js';
+import chatRouter from './routes/chat.js';
+
 dotenv.config();
 const app = express();
 app.use(cors({
@@ -14,7 +16,10 @@ app.use(cors({
 
 app.use(bodyParser.json());
 app.use('/api/vector', Vectorroutes);// route to create vector embeddings
-app.use('/api/rag',Ragroutes)
+app.use('/api/rag',Ragroutes);
+app.use('/api', chatRouter);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+console.log(`Server is running on port ${PORT}`);
+});
