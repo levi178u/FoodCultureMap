@@ -1,9 +1,11 @@
 from motor.motor_asyncio import AsyncIOMotorClient as client_io
-from pymongo import MongoClient
 from typing import List, Dict, Any
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+import asyncio
+import json
+from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings as APS
 
 load_dotenv()
 
@@ -13,12 +15,20 @@ class Database:
         self.db = None
         self.dishes_collection = None
         self.sessions_collection = None
+        self.model = APS(
+            api_key=os.getenv("HUGGING_FACE_API_KEY"),
+            model="sentence-transformers/all-MiniLM-L6-v2"
+        )
 
     async def connect(self):
         self.client = client_io(os.getenv("MONGO_URI"))
         self.db = self.client.foodDB
         self.dishes_collection = self.db.dishes
         self.sessions_collection = self.db.sessions
+        self.embeddings = APS(
+            api_key=os.getenv("HUGGING_FACE_API_KEY"),
+            model="sentence-transformers/all-MiniLM-L6-v2"
+        )
 
     async def close(self):
         if self.client:
@@ -82,8 +92,18 @@ class Database:
             upsert=True
         )
 
-    async def seed_dishes(self, dishes: List[Dict[str, Any]]):
-        if dishes:
-            await self.dishes_collection.insert_many(dishes)
+    async def seed_dishes(self, json_file: str):
+        with open(json_file, 'r', encoding='utf-8') as file:
+            dishes_data = json.load(file)
+
+            total = len(dishes_data)
+            dishes_with_embeddings = []
+            for item in dishes_data:
+                embedding = await self.model.embed_query(item['dish'])
+                item['embedding'] = embedding
+                dishes_with_embeddings.append(item)
+        if dishes_with_embeddings:
+            await self.dishes_collection.insert_many(dishes_with_embeddings)
+            print(f"Inserted {len(dishes_with_embeddings)} dishes out of {total}")
 
 db = Database() 
