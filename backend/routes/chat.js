@@ -5,16 +5,16 @@ const router = express.Router();
 
 router.post('/chat', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, sessionId } = req.body;
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const response = await chatWithFoodExpert(message);
+    const response = await chatWithFoodExpert(message, sessionId);
     res.json(response);
   } catch (error) {
     console.error('Error in chat endpoint:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 
