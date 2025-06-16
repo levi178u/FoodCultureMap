@@ -75,7 +75,7 @@ Each document in MongoDB has the following fields:
 
 ## 🖼️ Architecture Diagram
 
-![Architecture Diagram](./public/uploads/architecutre.png)
+![Architecture Diagram](./public/uploads/architecture.png)
 
 ---
 
