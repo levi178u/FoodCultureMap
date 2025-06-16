@@ -49,7 +49,7 @@ Each document in MongoDB has the following fields:
   ingredients: string[];
   embeddings: number[];
 }
-
+```
 ## 🔄 How It Works
 
 ### 🧾 Data Preparation
