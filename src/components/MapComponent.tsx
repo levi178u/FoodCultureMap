@@ -172,7 +172,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       
       {/* Enhanced Legend */}
       <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-lg z-20">
-        <h4 className="font-semibold text-sm text-gray-800 mb-3">Fermented Foods Map</h4>
+        <h4 className="font-semibold text-sm text-gray-800 mb-3">Food-Culture Map</h4>
         <div className="space-y-2 text-xs text-gray-600">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-full"></div>

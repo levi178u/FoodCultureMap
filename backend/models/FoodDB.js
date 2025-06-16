@@ -1,5 +1,6 @@
 
-const mongoose = require('mongoose');
+
+import mongoose from 'mongoose';
 
 const FoodCultureSchema = new mongoose.Schema({
   foodName: {
@@ -38,7 +39,7 @@ const FoodCultureSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  type: {
+  fermentationType: {
     type: String,
     required: true,
   },
@@ -50,13 +51,14 @@ const FoodCultureSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
-   embedding: {
+  embedding: {
     type: [Number], // Array of numbers (the embedding vector)
   }
 }, {
   timestamps: true // Optional: adds createdAt and updatedAt
 });
 
-module.exports = mongoose.model('Food', FoodCultureSchema);
+const FoodCulture = mongoose.model('FoodCulture', FoodCultureSchema);
 
+export default FoodCulture;
 
