@@ -21,8 +21,14 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export interface StoryStep {
+
+export interface StorySegment  {
+  title: string;
+  story: string;
+};
+
+export interface StoryStep  {
   doc: FoodCultureDoc;
-  narrative: string;
+  narrative: StorySegment;
   delay: number;
-}
+};

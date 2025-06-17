@@ -1,7 +1,7 @@
 import  { useState } from 'react';
 import MapComponent from '../components/MapComponent';
 import ChatBot from '../components/ChatBot';
-import { FoodCultureDoc, ChatMessage, StoryStep } from '../types/FoodCulture';
+import { FoodCultureDoc, ChatMessage, StoryStep, StorySegment } from '../types/FoodCulture';
 import { foodCultureDatabase } from '../data/foodCultureData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, MessageCircle, LogOut,Sparkles } from 'lucide-react';
@@ -10,7 +10,31 @@ import FoodCard from '../components/FoodCard'
 import { useNavigate } from 'react-router-dom';
 
 function Homepage() {
+ const speak = (text: string) => {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+
+  // Cancel any ongoing speech
+  synth.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US';
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  utterance.onstart = () => setIsSpeaking(true);
+  utterance.onend = () => setIsSpeaking(false);
+
+  synth.speak(utterance);
+};
+const stopSpeaking = () => {
+  window.speechSynthesis.cancel();
+  setIsSpeaking(false);
+};
+
   const navigate = useNavigate();
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -22,6 +46,7 @@ function Homepage() {
   const [isStoryMode, setIsStoryMode] = useState(false);
   const [currentStoryStep, setCurrentStoryStep] = useState(0);
   const [storySteps, setStorySteps] = useState<StoryStep[]>([]);
+  const [ docs, setDocs] = useState<FoodCultureDoc[]|null>([])
   const [selectedFood, setSelectedFood] = useState<FoodCultureDoc | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([20, 0]);
   const [mapZoom, setMapZoom] = useState(2);
@@ -50,16 +75,16 @@ function Homepage() {
         return;
       }
 
-      const story = createStoryFromDocs(relevantDocs, message);
+      const story = await createStoryFromDocs(relevantDocs, message);
       setStorySteps(story);
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: `Fascinating question! Let me take you on a journey through ${relevantDocs.length} remarkable cultures that shaped fermentation history. Watch as I guide you through each region...`,
+        text: `Fascinating question! Let me take you on a journey through ${relevantDocs.length} remarkable cultures that shaped Food history. Watch as I guide you through each region...`,
         isUser: false,
         timestamp: new Date()
       };
-      
+      speak(botMessage.text); // Speak intro
       setMessages(prev => [...prev, botMessage]);
       setIsStoryMode(true);
       setCurrentStoryStep(0);
@@ -74,7 +99,7 @@ function Homepage() {
   const getRelevantDocs = async (query: string): Promise<FoodCultureDoc[]> => {
   try {
     const embeds = await useEmbeddings(query);
-    console.log(embeds)
+    //console.log(embeds)
     const response = await fetch('http://localhost:5000/api/rag/ask', {
       method: 'POST',
       headers: {
@@ -88,6 +113,8 @@ function Homepage() {
     }
 
     const data = await response.json();
+    console.log(data.topDocs)
+    setDocs(data.topDocs)
     return data.topDocs as FoodCultureDoc[]; // assuming backend sends { topDocs: [...] }
   } catch (error) {
     console.error('Error fetching relevant docs:', error);
@@ -96,31 +123,44 @@ function Homepage() {
 };
 
 /// we have to use RAG here IGuess...
-  const createStoryFromDocs = (docs: FoodCultureDoc[], query: string): StoryStep[] => {
-    const getContextualNarrative = (doc: FoodCultureDoc, index: number): string => {
-      const isFirst = index === 0;
-      const isLast = index === docs.length - 1;
-      let narrative = '';
-      
-      if (isFirst) {
-        narrative = `Our fermentation journey begins in ancient ${doc.country}, around ${doc.timeOrigin}. Here in ${doc.location}, the people discovered ${doc.foodName} through ${doc.type}. `;
-      } else if (isLast) {
-        narrative = `Finally, our journey brings us to ${doc.country}, where ${doc.foodName} represents the culmination of fermentation mastery. `;
-      } else {
-        narrative = `Next, we travel to ${doc.country} in the ${doc.region} region, where ${doc.foodName} emerged around ${doc.timeOrigin}. `;
-      }
-      
-      narrative += `${doc.culturalSignificance} This ${doc.type} technique created a food that would become central to ${doc.country}'s culinary identity.`;
-      
-      return narrative;
-    };
+  const createStoryFromDocs = async (
+  docs: FoodCultureDoc[],
+  query: string
+): Promise<StoryStep[]> => {
+  const getContextualNarrative = async (): Promise<StorySegment[]> => {
+    try {
+      const response = await fetch('http://localhost:5000/api/rag/askRag', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query, docs }), // sending all docs at once
+      });
 
-    return docs.map((doc, index) => ({
-      doc,
-      narrative: getContextualNarrative(doc, index),
-      delay: index * 5000 // 5 seconds between each story step
-    }));
+      if (!response.ok) {
+        throw new Error('Failed to fetch relevant documents');
+      }
+
+      const data = await response.json();
+      console.log(data.rag); // should be array of { title, story }
+      return data.rag as StorySegment[];
+    } catch (error) {
+      console.error('Error fetching RAG narrative:', error);
+      return [];
+    }
   };
+
+  const narratives = await getContextualNarrative();
+
+  // Map each document with its corresponding narrative segment
+  const storySteps: StoryStep[] = docs.map((doc, index) => ({
+    doc,
+    narrative: narratives[index] || { title: 'N/A', story: 'No story found.' },
+    delay: index * 5000,
+  }));
+
+  return storySteps;
+};
 
   const startStoryAnimation = (story: StoryStep[]) => {
     // Reset map to world view first
@@ -144,10 +184,12 @@ function Homepage() {
         setTimeout(() => {
           const narrativeMessage: ChatMessage = {
             id: `story-${Date.now()}-${index}`,
-            text: step.narrative,
+            text: step.narrative.story,
             isUser: false,
             timestamp: new Date()
           };
+           // 🔊 Speak the story text here
+
           
           setMessages(prev => [...prev, narrativeMessage]);
         }, 1500);
@@ -165,10 +207,11 @@ function Homepage() {
       
       const endMessage: ChatMessage = {
         id: `story-end-${Date.now()}`,
-        text: "What an incredible journey through fermentation history! Each culture contributed unique techniques that shaped how we preserve and enjoy food today. Feel free to ask me more questions about any specific region or fermentation method!",
+        text: "What an incredible journey through Food-Culture Evloution history! Each culture contributed unique techniques that shaped how we preserve and enjoy food today. Feel free to ask me more questions about any specific region or Food Culture!",
         isUser: false,
         timestamp: new Date()
       };
+      speak(endMessage.text)
       
       setMessages(prev => [...prev, endMessage]);
     }, story.length * 5000 + 3000);
@@ -176,6 +219,9 @@ function Homepage() {
   const handleLogout = () => {
   localStorage.removeItem('token');
   navigate('/login');
+};
+const handleViewStory = () => {
+  navigate('/viewStory', { state: { story: storySteps } }); // Pass the storySteps
 };
 
 
@@ -191,8 +237,9 @@ function Homepage() {
     
     {/* Logo and Title */}
     <div className="flex items-center space-x-3">
-      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-        <Globe className="w-6 h-6 text-white" />
+      <div className="w-10 h-10 bg-gradient-to-br  rounded-full flex items-center justify-center">
+        <img src="/logo2.png"></img>
+        
       </div>
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Food Culture Explorer</h1>
@@ -205,6 +252,13 @@ function Homepage() {
       <div className="flex items-center space-x-1 text-sm text-gray-600">
         <Sparkles className="w-4 h-4" />
         <span>AI-Powered Cultural Journey</span>
+      </div>
+      <div 
+        onClick={handleViewStory}
+        className="flex items-center space-x-1 text-sm text-gray-600 hover:text-orange-600 cursor-pointer transition"
+      >
+        <Globe className="w-4 h-4" />
+        <span>View Story</span>
       </div>
       <div 
         onClick={handleLogout}
@@ -273,7 +327,7 @@ function Homepage() {
             <div className="p-4 border-b border-orange-200/30 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-2xl">
               <div className="flex items-center space-x-3">
                 <MessageCircle className="w-5 h-5" />
-                <h2 className="font-semibold">FC Guide</h2>
+                <h2 className="font-semibold">Ask KalFu Bot</h2>
               </div>
               <p className="text-sm text-orange-100 mt-1">Ask me about food-culture history!</p>
             </div>
@@ -283,7 +337,17 @@ function Homepage() {
               onSendMessage={handleChatMessage}
               isProcessing={isStoryMode}
             />
+           {storySteps.length > 0 && !isStoryMode && (
+  <button
+    onClick={handleViewStory}
+    className="mt-4 bg-gradient-to-r from-orange-400 to-red-400 text-white px-4 py-2 rounded-lg hover:brightness-110 transition"
+  >
+    📖 View Generated Story
+  </button>
+)}
           </div>
+         
+
           </motion.div>
         </div>
 
@@ -305,6 +369,15 @@ function Homepage() {
 
 
       </div>
+      {isSpeaking && (
+      <button
+        onClick={stopSpeaking}
+        className="fixed top-4 right-4 z-50 bg-red-500 text-white text-sm px-4 py-2 rounded-full shadow-lg hover:bg-red-600 transition"
+      >
+        🔇 Stop Narration
+      </button>
+    )}
+
     </div>
   );
 }
