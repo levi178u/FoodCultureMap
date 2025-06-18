@@ -46,7 +46,7 @@ const stopSpeaking = () => {
   const [isStoryMode, setIsStoryMode] = useState(false);
   const [currentStoryStep, setCurrentStoryStep] = useState(0);
   const [storySteps, setStorySteps] = useState<StoryStep[]>([]);
-  const [ docs, setDocs] = useState<FoodCultureDoc[]|null>([])
+  //const [ docs, setDocs] = useState<FoodCultureDoc[]|null>([])
   const [selectedFood, setSelectedFood] = useState<FoodCultureDoc | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([20, 0]);
   const [mapZoom, setMapZoom] = useState(2);
@@ -113,8 +113,7 @@ const stopSpeaking = () => {
     }
 
     const data = await response.json();
-    console.log(data.topDocs)
-    setDocs(data.topDocs)
+    console.log(data.topDocs);
     return data.topDocs as FoodCultureDoc[]; // assuming backend sends { topDocs: [...] }
   } catch (error) {
     console.error('Error fetching relevant docs:', error);
