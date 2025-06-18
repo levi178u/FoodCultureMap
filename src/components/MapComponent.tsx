@@ -80,7 +80,7 @@ function FoodMarker({
           isSelected ? 'scale-125 ring-4 ring-orange-300' : 
           isInCurrentStory ? 'scale-110 ring-2 ring-orange-200' : ''
         }">
-          <span class="text-white text-sm font-bold">${getMarkerEmoji(food.type)}</span>
+          <span class="text-white text-sm font-bold">${getMarkerEmoji(food.fermentationType)}</span>
         </div>
         ${isCurrentStoryStep ? '<div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-orange-500 animate-bounce"></div>' : 
           isSelected ? '<div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-orange-500"></div>' : ''}
@@ -117,7 +117,7 @@ function FoodMarker({
               ⏰ {food.timeOrigin}
             </span>
             <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-              🧪 {food.type.split(' ')[0]}
+              🧪 {food.fermentationType.split(' ')[0]}
             </span>
           </div>
         </div>

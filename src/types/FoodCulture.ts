@@ -1,5 +1,5 @@
 export interface FoodCultureDoc {
-  id: string;
+  id: number;
   foodName: string;
   region: string;
   country: string;
@@ -9,7 +9,7 @@ export interface FoodCultureDoc {
   latitude: number;
   longitude: number;
   timeOrigin: string;
-  type: string;
+  fermentationType: string;
   culturalSignificance: string;
   ingredients: string[];
 }
