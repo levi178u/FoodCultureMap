@@ -4,17 +4,26 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import Ragroutes from './routes/ragRoutes.js'
 import authRoutes from './routes/auth.js';
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
+
 dotenv.config();
+
 const app = express();
+
 app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT'],
+  origin: ['http://localhost:5173', 'https://frontend-app-575377833580.asia-south1.run.app'],
   credentials: true
 }));
 
+
+// Middleware
 app.use(bodyParser.json());
-// ✅ MongoDB Connection
+
+// Routes
+app.use('/api/rag', Ragroutes);
+app.use('/api/auth', authRoutes);
+
+// MongoDB Connection and Start Server
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -22,14 +31,9 @@ mongoose
   })
   .then(() => {
     console.log('✅ Connected to MongoDB');
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 8080; // ✅ Cloud Run expects 8080
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
   });
-app.use('/api/rag',Ragroutes)
-app.use('/api/auth', authRoutes);
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

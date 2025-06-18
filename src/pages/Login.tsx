@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function LoginForm() {
   const [form, setForm] = useState({ email: '', password: '' });
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const res = await fetch('http://localhost:5000/api/auth/login', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),

@@ -8,6 +8,7 @@ import { Globe, MessageCircle, LogOut,Sparkles } from 'lucide-react';
 import useEmbeddings from "../hooks/useEmbeddings";
 import FoodCard from '../components/FoodCard'
 import { useNavigate } from 'react-router-dom';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function Homepage() {
  const speak = (text: string) => {
@@ -100,7 +101,7 @@ const stopSpeaking = () => {
   try {
     const embeds = await useEmbeddings(query);
     //console.log(embeds)
-    const response = await fetch('http://localhost:5000/api/rag/ask', {
+    const response = await fetch(`${API_BASE_URL}/api/rag/ask`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -128,7 +129,7 @@ const stopSpeaking = () => {
 ): Promise<StoryStep[]> => {
   const getContextualNarrative = async (): Promise<StorySegment[]> => {
     try {
-      const response = await fetch('http://localhost:5000/api/rag/askRag', {
+      const response = await fetch(`${API_BASE_URL}/api/rag/askRag`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

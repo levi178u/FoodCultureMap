@@ -1,3 +1,4 @@
+
 # Build stage for Node.js
 FROM node:18-alpine as node-build
 
@@ -45,3 +46,23 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 
 # Start both servers
 CMD ["sh", "-c", "npm start & python3 main.py"] 
+=======
+# Use Node.js image
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy rest of the app files
+COPY . .
+
+# Expose your backend port (5000)
+EXPOSE 5000
+
+# Start the server
+CMD ["npm", "start"]
+

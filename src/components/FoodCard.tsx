@@ -75,7 +75,7 @@ const FoodCard: React.FC<FoodCardProps> = ({ food, onClose }) => {
                   <Beaker className="w-4 h-4 text-blue-600" />
                   <span className="font-semibold text-gray-800">Process</span>
                 </div>
-                <p className="text-gray-700 text-sm">{food.type}</p>
+                <p className="text-gray-700 text-sm">{food.fermentationType}</p>
               </div>
             </div>
 

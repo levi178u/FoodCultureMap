@@ -8,6 +8,7 @@ router.post('/ask', async (req, res) => {
   console.log( "Original Query", query)
   //console.log(embeds)
   const docs = await searchSimilarDishes(embeds);
+  console.log(docs)
   res.json({ topDocs: docs});
 });
 
