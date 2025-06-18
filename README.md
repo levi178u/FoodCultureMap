@@ -22,14 +22,15 @@
 | Backend     | Express.js (Node.js)                  |
 | Microservice | FastAPI (Python) for embedding pipeline |
 | Database    | MongoDB with Vector Search            |
-| AI Model    | OpenAI (LLM) + Universal Sentence Encoder |
-| Deployment  | (Mention your deployment platform here) |
+| AI Model    | Google's Gemini API (LLM) + Universal Sentence Encoder ( Tensorflow)  |
+| Containerization  | Docker |
+| Deployment  | Versal |
 
 ---
 
 ## 🗂️ Data Model
 
-The dataset is sourced from **[Kaggle - Food Culture Dataset](https://www.kaggle.com/)** and enriched with vector embeddings.  
+The dataset is sourced from **[Kaggle - Food Culture Dataset](https://www.kaggle.com/)** and enriched with vector embeddings using Universal Sentence Encoder.  
 Each document in MongoDB has the following fields:
 
 ```ts
