@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect,useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { FoodCultureDoc, StoryStep } from '../types/FoodCulture';
 import { DivIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-// Fix for default markers in react-leaflet
+import {ShoppingCart} from 'lucide-react'
 import { Icon } from 'leaflet';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 delete (Icon.Default.prototype as any)._getIconUrl;
 Icon.Default.mergeOptions({
@@ -59,6 +59,29 @@ function FoodMarker({
   isCurrentStoryStep: boolean;
   onClick: () => void;
 }) {
+  const [zomatoData, setZomatoData] = useState<any[]>([]);
+ const [showRestaurants, setShowRestaurants] = useState(false);
+
+  useEffect(() => {
+  if (food) {
+    fetchZomatoRestaurants(food.foodName, food.location);
+  }
+}, [food]);
+
+const handleOrderFood = () => {
+  setShowRestaurants(true);
+};
+
+
+const fetchZomatoRestaurants = async (foodName: string, city: string) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/zomato/search?query=${foodName}&city=${city}`);
+    const data = await res.json();
+    setZomatoData(data.restaurants || []);
+  } catch (error) {
+    console.error("Zomato fetch error:", error);
+  }
+};
   const getMarkerEmoji = (type: string): string => {
     const emojiMap: { [key: string]: string } = {
       'Lactic acid fermentation': '🥬',
@@ -93,37 +116,84 @@ function FoodMarker({
   });
 
   return (
-    <Marker
-      position={[food.latitude, food.longitude]}
-      icon={markerIcon}
-      eventHandlers={{
-        click: onClick,
-      }}
-    >
-      <Popup>
-        <div className="p-3 min-w-[280px]">
-          <img 
-            src={food.image} 
-            alt={food.foodName}
-            className="w-full h-36 object-cover rounded-lg mb-3"
-          />
-          <h3 className="font-bold text-lg text-gray-800 mb-1">{food.foodName}</h3>
-          <p className="text-sm text-gray-600 mb-2 flex items-center">
-            📍 {food.location}
-          </p>
-          <p className="text-sm text-gray-700 mb-3 leading-relaxed">{food.description}</p>
-          <div className="flex items-center justify-between text-xs">
-            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-              ⏰ {food.timeOrigin}
-            </span>
-            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-              🧪 {food.fermentationType.split(' ')[0]}
-            </span>
-          </div>
+  <Marker
+    position={[food.latitude, food.longitude]}
+    icon={markerIcon}
+    eventHandlers={{
+      click: onClick,
+    }}
+  >
+    <Popup>
+      <div className="p-3 min-w-[280px]">
+        <img 
+          src={food.image} 
+          alt={food.foodName}
+          className="w-full h-36 object-cover rounded-lg mb-3"
+        />
+        <h3 className="font-bold text-lg text-gray-800 mb-1">{food.foodName}</h3>
+        <p className="text-sm text-gray-600 mb-2 flex items-center">
+          📍 {food.location}
+        </p>
+        <p className="text-sm text-gray-700 mb-3 leading-relaxed">{food.description}</p>
+
+        {/* Tags */}
+        <div className="flex items-center justify-between text-xs mb-4">
+          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+            ⏰ {food.timeOrigin}
+          </span>
+          <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+            🧪 {food.fermentationType.split(' ')[0]}
+          </span>
         </div>
-      </Popup>
-    </Marker>
-  );
+
+        {/* Order Button */}
+        <div className="flex justify-center">
+          <button
+            onClick={handleOrderFood}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full shadow-lg hover:from-orange-600 hover:to-red-600 transition duration-200"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            Order Food Now
+          </button>
+        </div>
+
+        {/* Zomato Restaurants */}
+        {showRestaurants && (
+          <div className="mt-5 border-t pt-4">
+            <h3 className="text-lg font-bold mb-2 text-red-600">Available on Zomato</h3>
+            {zomatoData.length > 0 ? (
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {zomatoData.slice(0, 3).map((res: any, i: number) => (
+                  <div key={i} className="p-4 bg-white rounded-xl shadow border">
+                    <p className="text-lg font-semibold text-gray-800">{res.restaurant.name}</p>
+                    <p className="text-sm text-gray-600">{res.restaurant.location.address}</p>
+                    <a
+                      href={res.restaurant.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 text-white bg-orange-600 px-3 py-1 rounded hover:bg-orange-700"
+                    >
+                      Order Now
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No restaurants found.</p>
+            )}
+            <button
+              onClick={() => setShowRestaurants(false)}
+              className="mt-3 text-sm text-red-500 hover:underline"
+            >
+              Close
+            </button>
+          </div>
+        )}
+      </div>
+    </Popup>
+  </Marker>
+);
+
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({

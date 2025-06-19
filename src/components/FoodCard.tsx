@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect, useState} from 'react';
 import { FoodCultureDoc } from '../types/FoodCulture';
 import { motion } from 'framer-motion';
 import { X, MapPin, Clock, Beaker, Heart, Utensils } from 'lucide-react';
@@ -9,6 +9,8 @@ interface FoodCardProps {
 }
 
 const FoodCard: React.FC<FoodCardProps> = ({ food, onClose }) => {
+
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -103,6 +105,8 @@ const FoodCard: React.FC<FoodCardProps> = ({ food, onClose }) => {
             </div>
           </div>
         </div>
+        
+
       </div>
     </motion.div>
   );

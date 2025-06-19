@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import Ragroutes from './routes/ragRoutes.js'
 import authRoutes from './routes/auth.js';
 import mongoose from 'mongoose';
-
+import zomatoRoutes from './routes/zomato.js';
 dotenv.config();
 
 const app = express();
@@ -22,6 +22,7 @@ app.use(bodyParser.json());
 // Routes
 app.use('/api/rag', Ragroutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/zomato', zomatoRoutes);
 
 // MongoDB Connection and Start Server
 mongoose
