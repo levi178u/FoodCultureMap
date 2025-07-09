@@ -7,7 +7,7 @@
 ## 🚀 Features
 
 - 🔍 **Semantic Search** using MongoDB vector search.
-- 🤖 **RAG Pipeline**: Retrieval-Augmented Generation with OpenAI's LLM.
+- 🤖 **RAG Pipeline**: Retrieval-Augmented Generation with Google Gemini's LLM.
 - 🗺️ **Interactive Map Visualization** of food origins and cultural journeys.
 - 🧠 **Embeddings-based Matching** powered by TensorFlow Universal Sentence Encoder.
 - 🌐 **Multiservice Architecture** using React.js (frontend), Express.js & FastAPI (backend).
@@ -89,7 +89,7 @@ Make sure you have the following installed:
 - [Node.js](https://nodejs.org/) (Latest LTS version)
 - [Python 3.8+](https://www.python.org/downloads/)
 - [MongoDB](https://www.mongodb.com/atlas/database) (With **vector search** feature enabled)
-- [Google Gemini API Key]([https://platform.openai.com/account/api-keys](https://ai.google.dev/gemini-api/docs/api-key))
+- [Google Gemini API Key]([https://ai.google.dev/gemini-api/docs/api-key])
 
 ## 🔧 Setup Instructions
 
