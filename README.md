@@ -66,7 +66,7 @@ Each document in MongoDB has the following fields:
 - The backend uses **MongoDB’s vector search** feature to retrieve the top 5 semantically similar documents from the collection.
 
 ### 📝 Story Generation
-- These top 5 documents are sent to **OpenAI's LLM** via a **Retrieval-Augmented Generation (RAG)** pipeline.
+- These top 5 documents are sent to **Google Gemini's LLM** via a **Retrieval-Augmented Generation (RAG)** pipeline.
 - The LLM generates a **narrative story** based on the cultural and historical context of the food.
 
 ### 🗺️ Frontend Visualization
@@ -89,7 +89,7 @@ Make sure you have the following installed:
 - [Node.js](https://nodejs.org/) (Latest LTS version)
 - [Python 3.8+](https://www.python.org/downloads/)
 - [MongoDB](https://www.mongodb.com/atlas/database) (With **vector search** feature enabled)
-- [OpenAI API Key](https://platform.openai.com/account/api-keys)
+- [Google Gemini API Key]([https://platform.openai.com/account/api-keys](https://ai.google.dev/gemini-api/docs/api-key))
 
 ## 🔧 Setup Instructions
 
